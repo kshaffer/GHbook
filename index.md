@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Student reactions to MOOCs
+title: Sample ebook
 ---
 
 
