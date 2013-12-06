@@ -4,8 +4,9 @@
 TITLE = your title here
 AUTHOR = your name here
 
-EPUB_FILENAME = title.epub
-PDF_FILENAME = title.pdf
+# change these if you like; they will default to the title you fill in above
+EPUB_FILENAME = $(TITLE).epub
+PDF_FILENAME = $(TITLE).pdf
 
 LICENSE = Creative Commons Non-Commercial Share Alike 3.0
 LANGUAGE = en-us
