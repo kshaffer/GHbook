@@ -5,13 +5,13 @@ TITLE = your title here
 AUTHOR = your name here
 
 EPUB_FILENAME = title.epub
+PDF_FILENAME = title.pdf
 
 LICENSE = Creative Commons Non-Commercial Share Alike 3.0
 LANGUAGE = en-us
 
 # path to markdown files (default: current directory)
 MD_PATH = .
-MD_EXT = md
 
 # Paths to chapters, in order, separated by spaces. Should be all on one line;
 # if the line becomes too long, you may continue a line by putting a backslash
@@ -24,6 +24,7 @@ PANDOC = pandoc
 
 # folder where to put the generated files
 EPUB_FOLDER = _epub
+PDF_FOLDER = _pdf
 
 TITLE_PAGE_FILE = title.md
 METADATA_FILE = $(EPUB_FOLDER)/metadata.xml
@@ -39,7 +40,22 @@ title: $(TITLE_PAGE_FILE)
 .PHONY: metadata
 metadata: $(METADATA_FILE)
 
+# NB: THe PDF strips out all of the metadata from the markdown files for now.
+.PHONY: pdf
+pdf: $(PDF_FILENAME)
+
+.PHONY: clean
+clean:
+	-rm $(TITLE_PAGE_FILE)
+	-rm $(METADATA_FILE)
+	-rm -r $(EPUB_FOLDER)
+	-rm -r $(PDF_FOLDER)
+
+
 $(EPUB_FOLDER):
+	mkdir -p $@
+
+$(PDF_FOLDER):
 	mkdir -p $@
 
 $(TITLE_PAGE_FILE):
@@ -56,11 +72,20 @@ $(EPUB_FILENAME): $(TITLE_PAGE_FILE) $(METADATA_FILE) $(EPUB_MD_PREREQS)
 	$(PANDOC) -S --epub-metadata=$(METADATA_FILE) -o $(EPUB_FILENAME) \
 		$(TITLE_PAGE_FILE) $(EPUB_MD_PREREQS)
 
-$(EPUB_FOLDER)/%.md: $(MD_PATH)/%.md | $(EPUB_FOLDER)
+$(PDF_FILENAME): $(TITLE_PAGE_FILE) $(addprefix $(PDF_FOLDER)/, $(MD_FILES))
+	$(PANDOC) -S -o $@ $^
+
+define MD_SUB
 	cp $< $@
 	perl -ni -e 'if($$y){if(/^---$$/){$$y=0;next}s/^layout:.*$$//;\
 		s/^title:\s*(.*)$$/# $$1/;s/^author:\s*(.*)$$/**$$1**/;print;} \
 		$$y = 1 if /^---$$/;print unless $$y' $@
 	perl -p0i -e 's/^\s*//' $@
 	echo '' >> $@
+endef
 
+$(EPUB_FOLDER)/%.md: $(MD_PATH)/%.md | $(EPUB_FOLDER)
+	$(MD_SUB)
+
+$(PDF_FOLDER)/%.md: $(MD_PATH)/%.md | $(PDF_FOLDER)
+	$(MD_SUB)
